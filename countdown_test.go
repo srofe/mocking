@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestCountdown(t *testing.T) {
@@ -39,6 +40,16 @@ Go!`
 	})
 }
 
+func TestConfigurableSleeper(t *testing.T) {
+	sleepTime := 5 * time.Second
+	spyTime := &TimeSpy{}
+	sleeper := ConfigurableSleeper{sleepTime, spyTime.Sleep}
+	sleeper.Sleep()
+	if spyTime.durationSlept != sleepTime {
+		t.Errorf("should have slept for %v but slept for %v", sleepTime, spyTime.durationSlept)
+	}
+}
+
 type CountdownOperationSpy struct {
 	Calls []string
 }
@@ -54,3 +65,11 @@ func (s *CountdownOperationSpy) Write(p []byte) (n int, err error) {
 
 const write = "write"
 const sleep = "sleep"
+
+type TimeSpy struct {
+	durationSlept time.Duration
+}
+
+func (t *TimeSpy) Sleep(duration time.Duration) {
+	t.durationSlept = duration
+}
